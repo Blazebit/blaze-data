@@ -30,8 +30,8 @@ import com.blazebit.data.cfg.DataLookup;
 import com.blazebit.data.cfg.DataLookupBy;
 import com.blazebit.data.cfg.DataProperty;
 import com.blazebit.data.importer.DataProvider.Entry;
-import com.blazebit.reflection.ReflectionUtil;
-import com.blazebit.text.FormatUtil;
+import com.blazebit.reflection.ReflectionUtils;
+import com.blazebit.text.FormatUtils;
 import java.util.logging.Logger;
 
 /**
@@ -252,20 +252,20 @@ public class GenericDataImporter implements DataImporter {
                                 Serializable dlbFieldValue = null;
                                 Class dlbFieldClass = getClassPropertyClass(fromClass, dlb.getName());
 
-                                if (FormatUtil.isParseableType(dlbFieldClass)) {
+                                if (FormatUtils.isParseableType(dlbFieldClass)) {
                                     if (entry.getSimpleFields().containsKey(dp.getName())) {
-                                        dlbFieldValue = (Serializable) FormatUtil.getParsedValue(dlbFieldClass, entry.getSimpleFields().get(dp.getName()), calendarFormat);
+                                        dlbFieldValue = (Serializable) FormatUtils.getParsedValue(dlbFieldClass, entry.getSimpleFields().get(dp.getName()), calendarFormat);
                                     } else {
                                         Map<String, Serializable> subValueMap = (Map) (((DataProvider.Entry) entry.getComplexFields().get(dp.getName()).iterator().next()).getSimpleFields());
 
                                         for (Map.Entry<String, Serializable> subValueMapEntry : subValueMap.entrySet()) {
-                                            Class subFieldClass = ReflectionUtil.getFieldType(fromClass, subValueMapEntry.getKey());
+                                            Class subFieldClass = ReflectionUtils.getFieldType(fromClass, subValueMapEntry.getKey());
 
-                                            if (!FormatUtil.isParseableType(subFieldClass)) {
+                                            if (!FormatUtils.isParseableType(subFieldClass)) {
                                                 generateObjects2(subFieldClass);
                                                 dlbValues.put(subValueMapEntry.getKey(), subValueMapEntry.getValue());
                                             } else {
-                                                dlbValues.put(subValueMapEntry.getKey(), FormatUtil.getParsedValue(subFieldClass, (String) subValueMapEntry.getValue()));
+                                                dlbValues.put(subValueMapEntry.getKey(), FormatUtils.getParsedValue(subFieldClass, (String) subValueMapEntry.getValue()));
                                             }
                                         }
 
@@ -336,7 +336,7 @@ public class GenericDataImporter implements DataImporter {
                                 }
                                 if (dlbFieldValue != null) {
                                     String idValue = "";
-                                    if (FormatUtil.isParseableType(dlbFieldValue.getClass()) || dlb.isComposite() != null) {
+                                    if (FormatUtils.isParseableType(dlbFieldValue.getClass()) || dlb.isComposite() != null) {
                                         dlbValues.put(dlb.getName(), dlbFieldValue);
                                     } else {
                                         //We know that the Object for the Where clause is a Complex Object
@@ -525,7 +525,7 @@ public class GenericDataImporter implements DataImporter {
                 }
             } else {
                 if (simple.containsKey(e.getKey())) {
-                    if (FormatUtil.isParseableType(fieldType)) {
+                    if (FormatUtils.isParseableType(fieldType)) {
                         //Native or Wrapper
                         populateNativeOrWrapper(populateObject, setter, fieldType, e.getValue().toString());
                     } else {
@@ -671,12 +671,12 @@ public class GenericDataImporter implements DataImporter {
         for (String key : map.keySet()) {
             Object keyObject = null;
             //Get Key
-            if (!FormatUtil.isParseableType(genericKey)) {
+            if (!FormatUtils.isParseableType(genericKey)) {
                 Class identifierType = storage.getIdentifierType(genericKey);
                 Object o = null;
 
                 try {
-                    o = FormatUtil.getParsedValue(identifierType, key, calendarFormat);
+                    o = FormatUtils.getParsedValue(identifierType, key, calendarFormat);
                 } catch (ParseException ex) {
                     log.log(Level.SEVERE, ex.getMessage(), ex);
                     throw new DataImporterException(ex);
@@ -685,7 +685,7 @@ public class GenericDataImporter implements DataImporter {
                 generateObjects2(genericKey);
                 keyObject = storage.getById(genericKey, (Serializable) o);
             } else {
-                keyObject = FormatUtil.getParsedValue(genericKey, key, calendarFormat);
+                keyObject = FormatUtils.getParsedValue(genericKey, key, calendarFormat);
             }
 
             //Create Value
@@ -742,7 +742,7 @@ public class GenericDataImporter implements DataImporter {
      */
     private void populateNativeOrWrapper(Object populateObject, Method setter, Class fieldType, String fieldValue) throws DataImporterException {
         try {
-            Object o = FormatUtil.getParsedValue(fieldType, fieldValue, calendarFormat);
+            Object o = FormatUtils.getParsedValue(fieldType, fieldValue, calendarFormat);
 
             // Set null value
             if (o == null) {
@@ -772,7 +772,7 @@ public class GenericDataImporter implements DataImporter {
         Object o = null;
 
         try {
-            o = FormatUtil.getParsedValue(identifierType, fieldValue, calendarFormat);
+            o = FormatUtils.getParsedValue(identifierType, fieldValue, calendarFormat);
             //log.log(Level.SEVERE, o.toString());
         } catch (Exception ex) {
             log.log(Level.SEVERE, ex.getMessage(), ex);
