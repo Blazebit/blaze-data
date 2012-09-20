@@ -3,6 +3,7 @@
  */
 package com.blazebit.data.importer;
 
+import com.blazebit.reflection.ExpressionUtils;
 import com.blazebit.reflection.LazyGetterMethod;
 import com.blazebit.reflection.LazySetterMethod;
 import java.io.Serializable;
@@ -233,12 +234,9 @@ public class GenericDataImporter implements DataImporter {
                     if (dp.isExpression()) {
                         // Evaluate and assign value at the end
                         String fieldNamesValue = entry.getSimpleFields().get(dp.getName());
-                        String[] fieldNames = fieldNamesValue.split("\\.");
                         Object thisObject = thisObjectStack.peek();
 
-                        fieldNames = Arrays.copyOfRange(fieldNames, 1, fieldNames.length);
-
-                        lazySetActions.add(new LazySetterMethod(populateObject, dp.getName(), new Object[]{new LazyGetterMethod(thisObject, fieldNames)}));
+                        lazySetActions.add(new LazySetterMethod(populateObject, dp.getName(), new Object[]{new LazyGetterMethod(thisObject, fieldNamesValue)}));
                     } else {
                         DataLookup dl = getDataLookupForProperty(dp);
 
@@ -392,7 +390,7 @@ public class GenericDataImporter implements DataImporter {
 
                                 if (dl != null && setter.getParameterTypes()[0].equals(Set.class)) {
                                     Class genericType = (Class) ((ParameterizedType) setter.getGenericParameterTypes()[0]).getActualTypeArguments()[0];
-                                    Set set = (Set) new LazyGetterMethod(populateObject, e.getKey()).invoke();
+                                    Set set = (Set) ExpressionUtils.getValue(populateObject, e.getKey());
 
                                     if (((Entry) ((List) e.getValue()).get(0)).getComplexFields().isEmpty() && ((Entry) ((List) e.getValue()).get(0)).getSimpleFields().isEmpty()) {
                                         continue;
@@ -480,7 +478,7 @@ public class GenericDataImporter implements DataImporter {
                             if (dl.getFetch() != null) {
                                 // Fetch the value from the property into the field
                                 try {
-                                    o = new LazyGetterMethod(o, dl.getFetch()).invoke();
+                                    o = ExpressionUtils.getValue(o, dl.getFetch());
                                 } catch (Exception ex) {
                                     log.log(Level.SEVERE, "This should not happen!", ex);
                                     throw new DataImporterException(ex);

@@ -58,7 +58,7 @@ public class Configuration{
         return packageName;
     }
 
-    public Map<String, DataProperty> getDataProperties(Class clazz) {
+    public Map<String, DataProperty> getDataProperties(Class<?> clazz) {
         Map<String,DataProperty> dataProperties = dataClasses.get(clazz.getSimpleName());
         
         if(dataProperties == null){
@@ -77,7 +77,7 @@ public class Configuration{
         return dataProperties;
     }
 
-    public String[] getDefinedDependencies(Class clazz) {
+    public String[] getDefinedDependencies(Class<?> clazz) {
         String[] dependencies = dataDependencies.get(clazz.getSimpleName());
         
         if(dependencies == null){
